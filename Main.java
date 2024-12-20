@@ -4,13 +4,15 @@ public class Main {
 
     public static void main(String[] args) {
 
-        Solver s = new Solver();
+        //Solver s = new Solver();
         Solver s2 = new Solver();
+        TestSolver test = new TestSolver();
 
         try {
 
-            s.readInput("data.txt");
+            //s.readInput("data.txt");
             s2.readInput("testData.txt");
+            test.readInput("data.txt");
 
         } catch (IOException e) {
 
@@ -20,10 +22,11 @@ public class Main {
 
         }
 
-       
-
         System.err.println(s2.numberOfSafeReports);
-        System.out.println(s.numberOfSafeReports);
+
+        System.err.println(test.numberOfSafeReports);
+
+        //System.out.println(s.numberOfSafeReports);
 
     }
     

@@ -11,11 +11,13 @@ public class Solver {
     ArrayList<Integer> secondList = new ArrayList<>();
     int numberOfSafeReports;
     boolean isSafe;
+    int numberOfProblems;
 
     public Solver() {
         this.firstList.add(0);
         this.secondList.add(0);
         this.numberOfSafeReports = 0;
+        this.numberOfProblems = 0;
     }
 
     public void readInput(String fileName) throws IOException {
@@ -26,14 +28,15 @@ public class Solver {
         String line;
 
         while ((line = reader.readLine()) != null) {
-            int[] numbers = new int[line.split(" ").length];
+            ArrayList<Integer> numbers = new ArrayList<>();
             int i = 0;
             for(String element : line.split(" ")) {
                 if(!element.equals("")) {
-                    numbers[i] = Integer.parseInt(element);
+                    numbers.add(i, Integer.parseInt(element));
                     i++;
                 }               
             }
+            this.numberOfProblems = 0;
             if(trueIfSafe(numbers)) {
                 numberOfSafeReports++;
             }
@@ -42,23 +45,39 @@ public class Solver {
     }
 
 
-    private boolean trueIfSafe(int[] numbers) {
-        int[] listOfDiff = new int[numbers.length - 1];
+    private boolean trueIfSafe(ArrayList<Integer> numbers) {
+        ArrayList<Integer> listOfDiff = new ArrayList<>();
 
-        for(int i = 0; i < listOfDiff.length; i++) {
-            listOfDiff[i] = numbers[i + 1] - numbers[i];
+        for(int i = 0; i < numbers.size() - 1; i++) {
+            listOfDiff.add(i, numbers.get(i + 1) - numbers.get(i));
         }
 
-        evaluateDiffs(listOfDiff);
+        evaluateDiffs(listOfDiff, numbers);
 
         return isSafe;
     }
 
-    private boolean evaluateDiffs(int[] listOfDiff) {
+    private boolean evaluateDiffs(ArrayList<Integer> listOfDiff, ArrayList<Integer> numbers) {
         isSafe = false;
 
-        if(isAllNegative(listOfDiff) || isAllPositive(listOfDiff)) {
-            if(difInBounds(listOfDiff)) {
+        //if (not(arg1 or arg2))
+        if(!(isAllNegative(listOfDiff, numbers) || isAllPositive(listOfDiff, numbers))) {
+
+            this.numberOfProblems++;
+            int largestdiff = 0;
+
+            for(int i = 0; i < listOfDiff.size(); i++) {
+                if(Math.abs(listOfDiff.get(i)) > Math.abs(largestdiff)) {
+                    largestdiff = listOfDiff.get(i);
+                }
+            }
+
+            int i = listOfDiff.indexOf(largestdiff) + 1;            
+            eliminateFirstOffendingValue(numbers, i);
+        }
+
+        if(isAllNegative(listOfDiff, numbers) || isAllPositive(listOfDiff, numbers)) {
+            if(difInBounds(listOfDiff, numbers) && this.numberOfProblems < 2){
                 isSafe = true;
             }
         }
@@ -68,46 +87,65 @@ public class Solver {
         
     }
 
-    private boolean isAllNegative(int[] listOfDiff) {
+    private boolean isAllNegative(ArrayList<Integer> listOfDiff, ArrayList<Integer> numbers) {
         boolean isAllNegative = true;
-        for(int element : listOfDiff) {
-            if(element > -1) {
+
+        for(int i = 0; i < listOfDiff.size(); i++) {
+            if(listOfDiff.get(i) > - 1) {
                 isAllNegative = false;
                 break;
-                } 
             }
+        }
         return isAllNegative;
     }
 
-    private boolean isAllPositive(int[] listOfDiff) {
+    private boolean isAllPositive(ArrayList<Integer> listOfDiff, ArrayList<Integer> numbers) {
         boolean isAllPositive = true;
-        for(int element : listOfDiff) {
-            if(element < 1) {
+
+        for(int i = 0; i < listOfDiff.size(); i++) {
+            if(listOfDiff.get(i) > - 1) {
                 isAllPositive = false;
                 break;
-                } 
-            }
+            } 
+        }
         return isAllPositive;
     }
 
 
-    private boolean difInBounds(int[] listOfDiff) {
+    private boolean difInBounds(ArrayList<Integer> listOfDiff, ArrayList<Integer> numbers) {
         boolean isInBound = true;
 
-        for(int element : listOfDiff) {
-            if(element == 0) {
-                isInBound = false;
-                break;
-            } else if(element < (-3)) {
-                isInBound = false;
-                break;
-            } else if (element > 3) {
-                isInBound = false;
-                break;
+        for(int i = 0; i < listOfDiff.size(); i++) {
+            if(listOfDiff.get(i) == 0) {
+                eliminateFirstOffendingValue(numbers, i);
+                if(this.numberOfProblems > 1) {
+                    isInBound = false;
+                    break;
+                }
+            } else if(listOfDiff.get(i) < (-3)) {
+                eliminateFirstOffendingValue(numbers, i);
+                if(this.numberOfProblems > 1) {
+                    isInBound = false;
+                    break;
+                }
+            } else if (listOfDiff.get(i) > 3) {
+                eliminateFirstOffendingValue(numbers, i);
+                if(this.numberOfProblems > 1) {
+                    isInBound = false;
+                    break;
+                }
             }
         }
 
         return isInBound;
+    }
+
+    private void eliminateFirstOffendingValue(ArrayList<Integer> list, int index) {
+
+        if(this.numberOfProblems == 1) {
+            list.remove(index);
+            trueIfSafe(list);
+        }
     }
 }
 
